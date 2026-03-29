@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { api } from "../api/api";
+import GuestTopbar from "../components/GuestTopbar";
 
 export default function PublicBooking() {
   const { state } = useLocation();
@@ -46,6 +47,7 @@ export default function PublicBooking() {
 
   return (
     <div className="p-10 max-w-xl mx-auto">
+      <GuestTopbar />
 
       <h1 className="text-2xl font-semibold mb-6">
         Rezerwacja pokoju

@@ -19,6 +19,8 @@ import PublicSuccess from "./pages/PublicSuccess";
 import AddHotel from "./pages/admin/AddHotel";
 import AddRoom from "./pages/admin/AddRoom";
 import AdminCalendar from "./pages/admin/AdminCalendar";
+import Login from "./pages/Login";
+import ProtectedRoute from "./auth/ProtectedRoute";
 
 function App() {
   return (
@@ -26,7 +28,14 @@ function App() {
       <Routes>
 
         {/* RECEPCJA */}
-        <Route path="/app" element={<AppLayout />}>
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute allowedRoles={["staff", "admin"]}>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="rooms" element={<Rooms />} />
           <Route path="reservations" element={<Reservations />} />
@@ -34,7 +43,14 @@ function App() {
           <Route path="calendar" element={<Calendar />} />
         </Route>
         {/* ADMIN */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
            <Route index element={<Navigate to="hotels" />} />
            
           <Route path="hotels" element={<Hotels />} />
@@ -46,12 +62,34 @@ function App() {
         
 
         {/* PUBLIC HOME */}
-        <Route path="/" element={<PublicHome />} />
-        <Route path="/booking" element={<PublicBooking />} />
-        <Route path="/success" element={<PublicSuccess />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute allowedRoles={["guest", "staff", "admin"]}>
+              <PublicHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking"
+          element={
+            <ProtectedRoute allowedRoles={["guest", "staff", "admin"]}>
+              <PublicBooking />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/success"
+          element={
+            <ProtectedRoute allowedRoles={["guest", "staff", "admin"]}>
+              <PublicSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/login" element={<Login />} />
 
         {/* DEFAULT */}
-        <Route path="*" element={<Navigate to="/app/dashboard" />} />
+        <Route path="*" element={<Navigate to="/login" />} />
 
       </Routes>
     </BrowserRouter>

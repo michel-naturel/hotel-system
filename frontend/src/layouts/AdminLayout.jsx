@@ -1,7 +1,10 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 export default function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const navItems = [
   { to: "/admin/hotels", label: "Zarządzaj hotelem" },
@@ -10,6 +13,11 @@ export default function AdminLayout() {
   { to: "/admin/add-room", label: "Dodaj pokój" },
 
 ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen bg-bg text-text">
@@ -46,9 +54,14 @@ export default function AdminLayout() {
 
         {/* TOPBAR */}
         <div className="h-16 px-6 flex items-center justify-between border-b border-secondary bg-white/60 backdrop-blur">
-          <span className="text-sm text-muted">Admin panel</span>
+          <span className="text-sm text-muted">
+            {user?.username || "Admin"} ({user?.role || "admin"})
+          </span>
 
-          <button className="px-3 py-1 rounded-lg bg-secondary hover:bg-primary/20 transition">
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1 rounded-lg bg-secondary hover:bg-primary/20 transition"
+          >
             Logout
           </button>
         </div>

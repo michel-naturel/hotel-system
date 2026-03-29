@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db/database');
 const { v4: uuid } = require('uuid');
+const { requireAuth } = require('../auth/auth.middleware');
 
 // GET ALL HOTELS
 router.get('/', (req, res) => {
@@ -12,7 +13,7 @@ router.get('/', (req, res) => {
 });
 
 // CREATE HOTEL
-router.post('/', (req, res) => {
+router.post('/', requireAuth(['admin']), (req, res) => {
   const { name, address } = req.body;
 
   if (!name || !address) {
@@ -32,7 +33,7 @@ router.post('/', (req, res) => {
 });
 
 // UPDATE HOTEL
-router.put('/:id', (req, res) => {
+router.put('/:id', requireAuth(['admin']), (req, res) => {
   const { id } = req.params;
   const { name, address } = req.body;
 
@@ -49,7 +50,7 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE HOTEL
-router.delete('/:id', (req, res) => {
+router.delete('/:id', requireAuth(['admin']), (req, res) => {
   db.run(
     "DELETE FROM hotels WHERE id = ?",
     [req.params.id],

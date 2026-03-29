@@ -36,6 +36,30 @@ db.serialize(() => {
     )
   `);
 
+  // USERS (MVP auth)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT UNIQUE,
+      password TEXT,
+      role TEXT
+    )
+  `);
+
+  // Seed default accounts for local MVP
+  db.run(
+    `INSERT OR IGNORE INTO users (id, username, password, role)
+     VALUES ('u-admin', 'admin', 'admin123', 'admin')`
+  );
+  db.run(
+    `INSERT OR IGNORE INTO users (id, username, password, role)
+     VALUES ('u-guest', 'guest', 'guest123', 'guest')`
+  );
+  db.run(
+    `INSERT OR IGNORE INTO users (id, username, password, role)
+     VALUES ('u-staff', 'staff', 'staff123', 'staff')`
+  );
+
 });
 
 module.exports = db;

@@ -4,6 +4,7 @@ const cors = require('cors');
 const roomRoutes = require('./modules/room/room.routes');
 const reservationRoutes = require('./modules/reservation/reservation.routes');
 const hotelRoutes = require('./modules/hotel/hotel.routes');
+const authRoutes = require('./modules/auth/auth.routes');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 app.use('/rooms', roomRoutes);
 app.use('/reservations', reservationRoutes);
 app.use('/hotels', hotelRoutes);
+app.use('/auth', authRoutes);
 
 const PORT = 3000;
 

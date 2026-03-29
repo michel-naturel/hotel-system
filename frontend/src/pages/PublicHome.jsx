@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/api";
+import GuestTopbar from "../components/GuestTopbar";
 
 export default function PublicHome() {
   const [from, setFrom] = useState("");
@@ -41,6 +42,7 @@ useEffect(() => {
     <div className="min-h-screen bg-bg p-10">
 
       <div className="max-w-4xl mx-auto">
+        <GuestTopbar />
 
         {/* HERO */}
         <h1 className="text-4xl font-semibold mb-8 text-center">

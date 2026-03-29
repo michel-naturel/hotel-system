@@ -1,10 +1,20 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import HotelSelector from "../components/HotelSelector";
+import { useAuth } from "../auth/AuthContext";
 
 export default function AppLayout() {
   const [hotelId, setHotelId] = useState("h1");
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const roleLabel = user?.role === "staff" ? "Recepcja" : user?.role || "Recepcja";
 
   const navItems = [
     { to: "/app/dashboard", label: "Dashboard" },
@@ -60,8 +70,11 @@ export default function AppLayout() {
           <HotelSelector selected={hotelId} setSelected={setHotelId} />
 
           <div className="flex items-center gap-4 text-sm text-muted">
-            <span>Recepcja</span>
-            <button className="px-3 py-1 rounded-lg bg-secondary hover:bg-primary/20 transition">
+            <span>{roleLabel}</span>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1 rounded-lg bg-secondary hover:bg-primary/20 transition"
+            >
               Logout
             </button>
           </div>
