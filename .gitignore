@@ -22,6 +22,3 @@ build/
 # Python cache (z node-gyp)
 __pycache__/
 *.pyc
-
-# Optional: lock files (jeśli pracujecie zespołowo zwykle NIE ignoruje się package-lock.json)
-# package-lock.json
