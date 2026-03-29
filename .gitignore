@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build / compiled files
+dist/
+build/
+
+# OS / IDE files
+.DS_Store
+.vscode/
+.idea/
+
+# Python cache (z node-gyp)
+__pycache__/
+*.pyc
+
+# Optional: lock files (jeśli pracujecie zespołowo zwykle NIE ignoruje się package-lock.json)
+# package-lock.json
