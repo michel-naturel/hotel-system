@@ -2,64 +2,57 @@ const sqlite3 = require("sqlite3").verbose();
 
 const db = new sqlite3.Database("hotel.db");
 
-db.serialize(() => {
+db.run("PRAGMA foreign_keys = ON");
 
-  // HOTELS
+db.serialize(() => {
+  //włączenie foreign key
+  db.run("PRAGMA foreign_keys = ON");
+
+  //hotels
   db.run(`
     CREATE TABLE IF NOT EXISTS hotels (
       id TEXT PRIMARY KEY,
-      name TEXT,
-      address TEXT
+      name TEXT NOT NULL,
+      address TEXT NOT NULL
     )
   `);
 
-  // ROOMS
+  //rooms
   db.run(`
     CREATE TABLE IF NOT EXISTS rooms (
       id TEXT PRIMARY KEY,
-      number TEXT,
+      number TEXT NOT NULL,
       type TEXT,
-      price INTEGER,
-      hotelId TEXT
+      price INTEGER NOT NULL CHECK(price > 0),
+      hotelId TEXT NOT NULL,
+      FOREIGN KEY (hotelId) REFERENCES hotels(id)
     )
   `);
 
-  // RESERVATIONS
+  //customers
+  db.run(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id TEXT PRIMARY KEY,
+      firstName TEXT NOT NULL,
+      lastName TEXT NOT NULL,
+      phone TEXT,
+      email TEXT UNIQUE
+    )
+  `);
+
+  //reservations
   db.run(`
     CREATE TABLE IF NOT EXISTS reservations (
       id TEXT PRIMARY KEY,
-      guestName TEXT,
-      roomId TEXT,
-      hotelId TEXT,
-      fromDate TEXT,
-      toDate TEXT
+      customerId TEXT NOT NULL,
+      roomId TEXT NOT NULL,
+      fromDate TEXT NOT NULL,
+      toDate TEXT NOT NULL,
+      CHECK(fromDate <= toDate),
+      FOREIGN KEY (customerId) REFERENCES customers(id),
+      FOREIGN KEY (roomId) REFERENCES rooms(id)
     )
   `);
-
-  // USERS (MVP auth)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      username TEXT UNIQUE,
-      password TEXT,
-      role TEXT
-    )
-  `);
-
-  // Seed default accounts for local MVP
-  db.run(
-    `INSERT OR IGNORE INTO users (id, username, password, role)
-     VALUES ('u-admin', 'admin', 'admin123', 'admin')`
-  );
-  db.run(
-    `INSERT OR IGNORE INTO users (id, username, password, role)
-     VALUES ('u-guest', 'guest', 'guest123', 'guest')`
-  );
-  db.run(
-    `INSERT OR IGNORE INTO users (id, username, password, role)
-     VALUES ('u-staff', 'staff', 'staff123', 'staff')`
-  );
-
 });
 
 module.exports = db;
