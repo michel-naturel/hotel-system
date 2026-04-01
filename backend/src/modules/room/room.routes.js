@@ -8,11 +8,15 @@ const { requireAuth } = require('../auth/auth.middleware');
 router.get('/', (req, res) => {
   const { hotelId } = req.query;
 
-  let sql = "SELECT * FROM rooms";
+  let sql = `
+    SELECT rooms.*, hotels.name as hotelName
+    FROM rooms
+    JOIN hotels ON rooms.hotelId = hotels.id
+  `;
   let params = [];
 
   if (hotelId) {
-    sql += " WHERE hotelId = ?";
+    sql += " WHERE rooms.hotelId = ?";
     params.push(hotelId);
   }
 
@@ -26,10 +30,19 @@ router.get('/', (req, res) => {
 router.post('/', requireAuth(['admin']), (req, res) => {
   const { number, type, price, hotelId } = req.body;
 
+  if (!number || !price || !hotelId) {
+    return res.status(400).json({ message: "Missing data" });
+  }
+
+  if (price <= 0) {
+    return res.status(400).json({ message: "Price must be > 0" });
+  }
+
   const id = uuid();
 
   db.run(
-    "INSERT INTO rooms VALUES (?, ?, ?, ?, ?)",
+    `INSERT INTO rooms (id, number, type, price, hotelId)
+     VALUES (?, ?, ?, ?, ?)`,
     [id, number, type, price, hotelId],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -43,13 +56,20 @@ router.put('/:id', requireAuth(['admin']), (req, res) => {
   const { id } = req.params;
   const { number, type, price } = req.body;
 
+  if (!number || !price) {
+    return res.status(400).json({ message: "Missing data" });
+  }
+
   db.run(
     "UPDATE rooms SET number = ?, type = ?, price = ? WHERE id = ?",
     [number, type, price, id],
     function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+
       if (this.changes === 0) {
         return res.status(404).json({ message: 'Room not found' });
       }
+
       res.json({ id, number, type, price });
     }
   );
@@ -61,9 +81,12 @@ router.delete('/:id', requireAuth(['admin']), (req, res) => {
     "DELETE FROM rooms WHERE id = ?",
     [req.params.id],
     function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+
       if (this.changes === 0) {
         return res.status(404).json({ message: 'Room not found' });
       }
+
       res.json({ message: 'Deleted' });
     }
   );
@@ -72,6 +95,10 @@ router.delete('/:id', requireAuth(['admin']), (req, res) => {
 // AVAILABLE ROOMS
 router.get('/available', (req, res) => {
   const { fromDate, toDate, hotelId } = req.query;
+
+  if (!fromDate || !toDate || !hotelId) {
+    return res.status(400).json({ message: "Missing query params" });
+  }
 
   const sql = `
     SELECT *

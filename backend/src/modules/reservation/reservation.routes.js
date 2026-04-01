@@ -7,11 +7,17 @@ const { v4: uuid } = require('uuid');
 router.get('/', (req, res) => {
   const { hotelId } = req.query;
 
-  let sql = "SELECT * FROM reservations";
+  let sql = `
+    SELECT reservations.*, customers.firstName, customers.lastName, rooms.number
+    FROM reservations
+    JOIN customers ON reservations.customerId = customers.id
+    JOIN rooms ON reservations.roomId = rooms.id
+  `;
+
   let params = [];
 
   if (hotelId) {
-    sql += " WHERE hotelId = ?";
+    sql += " WHERE rooms.hotelId = ?";
     params.push(hotelId);
   }
 
@@ -23,8 +29,12 @@ router.get('/', (req, res) => {
 
 // CREATE
 router.post('/', (req, res) => {
-  const { roomId, guestName, fromDate, toDate, hotelId } = req.body;
-console.log("CREATE RESERVATION:", req.body);
+  const { roomId, customerId, fromDate, toDate } = req.body;
+
+  if (!roomId || !customerId || !fromDate || !toDate) {
+    return res.status(400).json({ message: "Missing data" });
+  }
+
   const checkSql = `
     SELECT *
     FROM reservations
@@ -36,6 +46,8 @@ console.log("CREATE RESERVATION:", req.body);
   `;
 
   db.all(checkSql, [roomId, fromDate, toDate], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+
     if (rows.length > 0) {
       return res.status(400).json({ message: "Room not available" });
     }
@@ -43,9 +55,9 @@ console.log("CREATE RESERVATION:", req.body);
     const id = uuid();
 
     db.run(
-  `INSERT INTO reservations (id, guestName, roomId, hotelId, fromDate, toDate)
-   VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, guestName, roomId, hotelId, fromDate, toDate],
+      `INSERT INTO reservations (id, customerId, roomId, fromDate, toDate)
+       VALUES (?, ?, ?, ?, ?)`,
+      [id, customerId, roomId, fromDate, toDate],
       (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.status(201).json({ id });
@@ -60,9 +72,12 @@ router.delete('/:id', (req, res) => {
     "DELETE FROM reservations WHERE id = ?",
     [req.params.id],
     function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+
       if (this.changes === 0) {
         return res.status(404).json({ message: "Not found" });
       }
+
       res.json({ message: "Deleted" });
     }
   );
