@@ -5,6 +5,7 @@ const roomRoutes = require('./modules/room/room.routes');
 const reservationRoutes = require('./modules/reservation/reservation.routes');
 const hotelRoutes = require('./modules/hotel/hotel.routes');
 const authRoutes = require('./modules/auth/auth.routes');
+const customersRouter = require('./modules/customers/customers');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/rooms', roomRoutes);
 app.use('/reservations', reservationRoutes);
 app.use('/hotels', hotelRoutes);
 app.use('/auth', authRoutes);
+app.use('/customers', customersRouter);
 
 const PORT = 3000;
 
