@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 import { api } from "../api/api";
 import GuestTopbar from "../components/GuestTopbar";
 
+const DAY_MS = 86400000;
+
+// spójny model czasu
+function toDayNumber(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / DAY_MS);
+}
+
 export default function PublicBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -12,6 +20,26 @@ export default function PublicBooking() {
   const [name, setName] = useState("");
   const [hotelName, setHotelName] = useState("");
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // 1. GUARD NA WEJŚCIU
+  useEffect(() => {
+    if (!room || !from || !to) {
+      navigate("/");
+      return;
+    }
+
+    const fromDay = toDayNumber(from);
+    const toDay = toDayNumber(to);
+    const todayDay = toDayNumber(todayStr);
+
+    if (fromDay < todayDay || toDay <= fromDay) {
+      alert("Nieprawidłowe daty rezerwacji");
+      navigate("/");
+    }
+  }, [room, from, to]);
+
+  // 2. FETCH HOTELU
   useEffect(() => {
     if (!room) return;
 
@@ -28,10 +56,23 @@ export default function PublicBooking() {
     return <div className="p-10">Brak danych</div>;
   }
 
+  // 3. BOOK (z dodatkowym zabezpieczeniem)
   const book = async () => {
     if (!name) {
       alert("Podaj imię");
       return;
+    }
+
+    const fromDay = toDayNumber(from);
+    const toDay = toDayNumber(to);
+    const todayDay = toDayNumber(todayStr);
+
+    if (fromDay < todayDay) {
+      return alert("Nie można rezerwować w przeszłości");
+    }
+
+    if (toDay <= fromDay) {
+      return alert("Nieprawidłowy zakres dat");
     }
 
     await api.post("/reservations", {
@@ -75,6 +116,7 @@ export default function PublicBooking() {
       <input
         className="px-3 py-2 rounded-xl border border-secondary w-full mb-4"
         placeholder="Twoje imię"
+        value={name}
         onChange={e => setName(e.target.value)}
       />
 

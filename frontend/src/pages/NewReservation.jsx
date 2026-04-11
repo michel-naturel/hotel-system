@@ -2,6 +2,14 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { api } from "../api/api";
 
+const DAY_MS = 86400000;
+
+// spójne z kalendarzem
+function toDayNumber(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / DAY_MS);
+}
+
 export default function NewReservation() {
   const { hotelId } = useOutletContext();
 
@@ -11,14 +19,29 @@ export default function NewReservation() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [name, setName] = useState("");
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   const search = async () => {
     if (!from || !to) return alert("Wybierz daty");
 
-    if (to <= from) return alert("Data końcowa musi być późniejsza");
+    const fromDay = toDayNumber(from);
+    const toDay = toDayNumber(to);
+    const todayDay = toDayNumber(todayStr);
+
+    // blokada przeszłości
+    if (fromDay < todayDay) {
+      return alert("Nie można rezerwować w przeszłości");
+    }
+
+    // poprawna logika hotelowa (min 1 noc)
+    if (toDay <= fromDay) {
+      return alert("Data końcowa musi być późniejsza niż początkowa");
+    }
 
     const res = await api.get(
       `/rooms/available?fromDate=${from}&toDate=${to}&hotelId=${hotelId}`
     );
+
     setRooms(res.data);
   };
 
@@ -26,6 +49,19 @@ export default function NewReservation() {
     if (!selectedRoom || !name) {
       alert("Wybierz pokój i wpisz imię");
       return;
+    }
+
+    const fromDay = toDayNumber(from);
+    const toDay = toDayNumber(to);
+    const todayDay = toDayNumber(todayStr);
+
+    // dodatkowa walidacja bezpieczeństwa
+    if (fromDay < todayDay) {
+      return alert("Nie można rezerwować w przeszłości");
+    }
+
+    if (toDay <= fromDay) {
+      return alert("Nieprawidłowy zakres dat");
     }
 
     await api.post("/reservations", {
@@ -36,16 +72,15 @@ export default function NewReservation() {
       hotelId
     });
 
-      setRooms([]);
-      setSelectedRoom(null);
-      setName("");
+    setRooms([]);
+    setSelectedRoom(null);
+    setName("");
 
     window.location.href = "/app/reservations";
   };
 
   return (
     <div>
-
       <h1 className="text-2xl font-semibold mb-8">New reservation</h1>
 
       <div className="bg-white/70 backdrop-blur border border-secondary rounded-2xl p-6 mb-6">
@@ -55,12 +90,16 @@ export default function NewReservation() {
           <input
             className="px-3 py-2 rounded-xl border border-secondary"
             type="date"
+            min={todayStr} // blokada w UI
+            value={from}
             onChange={e => setFrom(e.target.value)}
           />
 
           <input
             className="px-3 py-2 rounded-xl border border-secondary"
             type="date"
+            min={from || todayStr} // nie pozwala wybrać wcześniejszej daty końca
+            value={to}
             onChange={e => setTo(e.target.value)}
           />
 
@@ -102,6 +141,7 @@ export default function NewReservation() {
         <input
           className="mt-6 px-3 py-2 rounded-xl border border-secondary w-full max-w-sm"
           placeholder="Guest name"
+          value={name}
           onChange={e => setName(e.target.value)}
         />
 
@@ -113,7 +153,6 @@ export default function NewReservation() {
         </button>
 
       </div>
-
     </div>
   );
 }
