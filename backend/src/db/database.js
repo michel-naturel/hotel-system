@@ -77,8 +77,9 @@ db.serialize(() => {
   db.run(`INSERT OR IGNORE INTO users (id, username, password, role) VALUES ('u-staff', 'staff', 'staff123', 'staff')`);
   db.run(`INSERT OR IGNORE INTO users (id, username, password, role) VALUES ('u-guest', 'guest', 'guest123', 'guest')`);
 
-  //seed guest customer
+  //seed guest and staff
   db.run(`INSERT OR IGNORE INTO customers (id, firstName, lastName) VALUES ('u-guest', 'Guest', 'User')`);
+  db.run(`INSERT OR IGNORE INTO customers (id, firstName, lastName) VALUES ('u-staff', 'Staff', 'User')`);
 });
 
 module.exports = db;
