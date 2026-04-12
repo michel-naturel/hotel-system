@@ -6,21 +6,17 @@ import GuestTopbar from "../components/GuestTopbar";
 export default function PublicBooking() {
   const { state } = useLocation();
   const navigate = useNavigate();
-
   const { room, from, to } = state || {};
-
   const [name, setName] = useState("");
   const [hotelName, setHotelName] = useState("");
 
   useEffect(() => {
     if (!room) return;
-
     const fetchHotel = async () => {
       const res = await api.get("/hotels");
       const hotel = res.data.find(h => h.id === room.hotelId);
       if (hotel) setHotelName(hotel.name);
     };
-
     fetchHotel();
   }, [room]);
 
@@ -33,58 +29,48 @@ export default function PublicBooking() {
       alert("Podaj imię");
       return;
     }
-
+    const raw = localStorage.getItem("authUser");
+    const user = JSON.parse(raw);
     await api.post("/reservations", {
       roomId: room.id,
-      guestName: name,
+      customerId: user.id,
       fromDate: from,
       toDate: to,
-      hotelId: room.hotelId
+      guestName: name,
     });
-
     navigate("/success");
   };
 
   return (
     <div className="p-10 max-w-xl mx-auto">
       <GuestTopbar />
-
       <h1 className="text-2xl font-semibold mb-6">
         Rezerwacja pokoju
       </h1>
-
       <div className="bg-white/70 backdrop-blur border border-secondary rounded-2xl p-6 mb-6">
-
         <div className="text-lg font-medium mb-2">
           Room {room.number}
         </div>
-
         <div className="text-muted">{room.type}</div>
         <div className="mb-2">{room.price} zł</div>
-
         <div className="text-sm text-muted">
           Hotel: {hotelName || room.hotelId}
         </div>
-
         <div className="text-sm text-muted mt-2">
           {from} → {to}
         </div>
-
       </div>
-
       <input
         className="px-3 py-2 rounded-xl border border-secondary w-full mb-4"
         placeholder="Twoje imię"
         onChange={e => setName(e.target.value)}
       />
-
       <button
         onClick={book}
         className="px-6 py-2 rounded-xl bg-primary text-white"
       >
         Zarezerwuj
       </button>
-
     </div>
   );
 }

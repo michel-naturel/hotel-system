@@ -1,8 +1,5 @@
 const sqlite3 = require("sqlite3").verbose();
-
 const db = new sqlite3.Database("hotel.db");
-
-db.run("PRAGMA foreign_keys = ON");
 
 db.serialize(() => {
   //włączenie foreign key
@@ -48,11 +45,40 @@ db.serialize(() => {
       roomId TEXT NOT NULL,
       fromDate TEXT NOT NULL,
       toDate TEXT NOT NULL,
+      guestName TEXT,
       CHECK(fromDate <= toDate),
       FOREIGN KEY (customerId) REFERENCES customers(id),
       FOREIGN KEY (roomId) REFERENCES rooms(id)
     )
   `);
+
+  //users
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL
+    )
+  `);
+
+  //seed hotels
+  db.run(`INSERT OR IGNORE INTO hotels (id, name, address) VALUES ('h1', 'Hotel Warszawa', 'Warszawa')`);
+  db.run(`INSERT OR IGNORE INTO hotels (id, name, address) VALUES ('h2', 'Wilczy Młyn', 'Kraków')`);
+
+  //seed rooms
+  db.run(`INSERT OR IGNORE INTO rooms (id, number, type, price, hotelId) VALUES ('r1', '101', 'single', 100, 'h1')`);
+  db.run(`INSERT OR IGNORE INTO rooms (id, number, type, price, hotelId) VALUES ('r2', '102', 'double', 200, 'h1')`);
+  db.run(`INSERT OR IGNORE INTO rooms (id, number, type, price, hotelId) VALUES ('r3', '201', 'single', 120, 'h2')`);
+  db.run(`INSERT OR IGNORE INTO rooms (id, number, type, price, hotelId) VALUES ('r4', '002', 'single', 100, 'h2')`);
+
+  //seed users
+  db.run(`INSERT OR IGNORE INTO users (id, username, password, role) VALUES ('u-admin', 'admin', 'admin123', 'admin')`);
+  db.run(`INSERT OR IGNORE INTO users (id, username, password, role) VALUES ('u-staff', 'staff', 'staff123', 'staff')`);
+  db.run(`INSERT OR IGNORE INTO users (id, username, password, role) VALUES ('u-guest', 'guest', 'guest123', 'guest')`);
+
+  //seed guest customer
+  db.run(`INSERT OR IGNORE INTO customers (id, firstName, lastName) VALUES ('u-guest', 'Guest', 'User')`);
 });
 
 module.exports = db;
