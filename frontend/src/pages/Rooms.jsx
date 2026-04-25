@@ -21,7 +21,7 @@ export default function Rooms() {
         {rooms.map(r => (
           <div
             key={r.id}
-            onClick={() => navigate("/app/new-reservation")}
+            onClick={() => navigate(`/app/rooms/${r.id}`)}
             className="cursor-pointer bg-white/70 backdrop-blur border border-secondary rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] transition"
           >
             <div className="text-lg font-medium">

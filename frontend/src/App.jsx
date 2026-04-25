@@ -21,6 +21,7 @@ import AddRoom from "./pages/admin/AddRoom";
 import AdminCalendar from "./pages/admin/AdminCalendar";
 import Login from "./pages/Login";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import RoomDetails from "./pages/RoomDetails";
 
 function App() {
   return (
@@ -41,6 +42,8 @@ function App() {
           <Route path="reservations" element={<Reservations />} />
           <Route path="reservations/new" element={<NewReservation />} />
           <Route path="calendar" element={<Calendar />} />
+           {/* ROOM DETAILS */}
+         <Route path="/app/rooms/:roomId" element={<RoomDetails />} />
         </Route>
         {/* ADMIN */}
         <Route
@@ -90,6 +93,8 @@ function App() {
 
         {/* DEFAULT */}
         <Route path="*" element={<Navigate to="/login" />} />
+
+       
 
       </Routes>
     </BrowserRouter>
