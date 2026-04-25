@@ -64,8 +64,12 @@ export default function NewReservation() {
       return alert("Nieprawidłowy zakres dat");
     }
 
+    const raw = localStorage.getItem("authUser");
+    const user = JSON.parse(raw);
+
     await api.post("/reservations", {
       roomId: selectedRoom,
+      customerId: user.id,
       guestName: name,
       fromDate: from,
       toDate: to,
