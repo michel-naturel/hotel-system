@@ -8,15 +8,22 @@ export default function Reservations() {
   const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
-  api.get(`/rooms?hotelId=${hotelId}`).then(res => setRooms(res.data));
-}, [hotelId]);
+  const load = async () => {
+    const roomsRes = await api.get(`/rooms?hotelId=${hotelId}`);
+    const resRes = await api.get("/reservations");
 
-  useEffect(() => {
-    api.get("/reservations").then(res => {
-      const filtered = res.data.filter(r => r.hotelId === hotelId);
-      setData(filtered);
+    setRooms(roomsRes.data);
+
+    const filtered = resRes.data.filter(r => {
+      const room = roomsRes.data.find(room => room.id === r.roomId);
+      return room?.hotelId === hotelId;
     });
-  }, [hotelId]);
+
+    setData(filtered);
+  };
+
+  if (hotelId) load();
+}, [hotelId]);
 
   return (
     <div>

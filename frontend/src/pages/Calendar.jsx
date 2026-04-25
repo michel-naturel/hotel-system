@@ -66,7 +66,12 @@ export default function Calendar() {
     const resRes = await api.get("/reservations");
 
     setRooms(roomsRes.data);
-    setReservations(resRes.data.filter(r => r.hotelId === hotelId));
+    const filtered = resRes.data.filter(r => {
+  const room = roomsRes.data.find(room => room.id === r.roomId);
+  return room?.hotelId === hotelId;
+});
+
+setReservations(filtered);
   };
 
   useEffect(() => {
