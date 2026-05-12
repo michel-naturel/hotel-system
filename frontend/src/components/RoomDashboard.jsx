@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Calendar from "../pages/Calendar";
+import { api } from "../api/api";
 
 export default function RoomDashboard({ room, onBack }) {
   // 🛡️ Guard — brak danych = nic nie renderujemy
@@ -17,18 +18,37 @@ export default function RoomDashboard({ room, onBack }) {
   }, [room]);
 
   // 💾 zapis (na razie lokalny — MVP)
-  const save = () => {
-    const confirmSave = window.confirm("Zapisać zmiany?");
-    if (!confirmSave) return;
+ const save = async () => {
+    try {
+      await api.put(`/rooms/${room.id}`, {
+        number: room.number, // backend wymaga numeru
+        type: type,
+        price: Number(price)
+      });
+      alert("Zmiany zostały zapisane!");
+      setEdit(false);
+      // Możesz wywołać onBack() lub odświeżyć dane, żeby admin widział zmiany
+      window.location.reload(); 
+    } catch (err) {
+      alert("Błąd zapisu: " + (err.response?.data?.message || "Błąd serwera"));
+    }
+  };
 
-    // ⚠️ NIE mutujemy propsów (ważne!)
-    // tu docelowo będzie API call
+  // 2. USUWANIE POKOJU
+  const deleteRoom = async () => {
+    if (!window.confirm(`Czy na pewno chcesz usunąć pokój ${room.number}?`)) return;
 
-    setEdit(false);
+    try {
+      await api.delete(`/rooms/${room.id}`);
+      alert("Pokój został usunięty.");
+      onBack(); // Powrót do listy pokoi po usunięciu
+    } catch (err) {
+      alert("Błąd usuwania: " + (err.response?.data?.message || "Błąd serwera"));
+    }
   };
 
   return (
-    <div>
+    <div className="relative">
       {/* 🔙 BACK */}
       <button
         onClick={onBack}
@@ -38,7 +58,14 @@ export default function RoomDashboard({ room, onBack }) {
       </button>
 
       {/* 🧾 CARD */}
-      <div className="bg-white p-6 rounded-2xl border mb-6">
+      <div className="bg-white p-6 rounded-2xl border mb-6 relative">
+        <button 
+          onClick={deleteRoom}
+          className="absolute top-4 right-4 text-red-500 hover:bg-red-50 p-2 rounded-full transition"
+          title="Usuń pokój"
+        >
+          <span className="text-xl font-bold">✕</span>
+        </button>
         <div className="text-xl font-semibold mb-4">
           Room {room.number}
         </div>
@@ -64,6 +91,7 @@ export default function RoomDashboard({ room, onBack }) {
           Cena:
           {edit ? (
             <input
+              type="number"
               value={price}
               onChange={e => setPrice(e.target.value)}
               className="ml-2 border px-2 py-1 rounded"
